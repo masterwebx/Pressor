@@ -31,15 +31,28 @@
               Log.log("SaveData not 2.1 compatible, refreshing")
             }
             Main.oldtime = theGoods.oldtime;  
-            Log.log("The last compression time is " + Main.oldtime)          
+            Log.log("The last compression time is " + Main.oldtime + " imagebool is " + theGoods.imagebool)
+            Log.log("ponpon: " + theGoods.easteregg + "sukaponchecked: " + theGoods.sukaponchecked);
+            Main.ponpon = theGoods.easteregg; 
+            Main.sukaponchecked = theGoods.sukaponchecked;          
             Main.color1 = theGoods.color1;
             Main.color2 = theGoods.color2;
             Main.color3 = theGoods.color3;
             Main.color4 = theGoods.color4;
             Main.muteCheck = theGoods.mute;
             Main.slider = theGoods.sfxVolume;
-            Main.mslider = theGoods.musicVolume;
-            Main.docsDir = new File(theGoods.lastDirectory);              
+            Main.mslider = theGoods.musicVolume;            
+            Main.docsDir = new File(theGoods.lastDirectory);
+            if(theGoods.imagebool == "undefined" || theGoods.imagebool == null)
+            {
+               Log.log("imagebool not found")
+               Main.imagebool = true;
+               SaveData.export();               
+            }  
+   			else
+   			{            
+              Main.imagebool = theGoods.imagebool;
+            }             
             theGoods = null;
             Log.log("SaveData successfully imported");      
          }
@@ -65,7 +78,10 @@
             stream.readBytes(baby);
             stream.close();
             theGoods = JSON.parse(baby);
-            Log.log("theGoods: " + theGoods.oldtime)                 
+            Log.log("theGoods: " + theGoods.oldtime) 
+            theGoods.easteregg = Main.ponpon; 
+            Log.log("ponpon: " + theGoods.easteregg); 
+            theGoods.sukaponchecked = Main.sukaponchecked;              
             theGoods.lastDirectory = Main.docsDir.nativePath;
             theGoods.mute = Main.muteCheck;
             theGoods.sfxVolume = Main.slider;
@@ -74,6 +90,7 @@
             theGoods.color2 = Main.color2;
             theGoods.color3 = Main.color3;
             theGoods.color4 = Main.color4;
+            theGoods.imagebool = Main.imagebool;
             if(Main.oldtime > theGoods.oldtime)
             {
                theGoods.oldtime = Main.oldtime;
@@ -104,11 +121,14 @@
 	            "title":"Pressor 2.0 by Wex",
                "musicVolume":"0.6",
                "sfxVolume":"0.4",              
-            	"color1":"",
-            	"color2":"",
-            	"color3":"",
-            	"color4":"",
-               "mute":false,               
+            	"color1":"102",
+            	"color2":"10027008",
+            	"color3":"12104812",
+            	"color4":"3368703",
+               "mute":false,
+               "imagebool":true, 
+               "easteregg":false,
+               "sukaponchecked":false,              
                "oldtime":"1"                          
          };
       }   

@@ -25,11 +25,19 @@
 
       private var sukapon:Boolean;
 
+      public static var ponpon:Boolean;
+
+      public static var sukaponchecked:Boolean;
+
+      private var easteregg_act:Boolean;
+
       private var sfxdelay:Boolean;
 
       public static var autocompress:Boolean = false; //not ready yet
 
       public static var muteCheck:Boolean;
+
+      public static var imagebool:Boolean = true;
 
       private var startingTime:int;
 
@@ -49,13 +57,13 @@
 
       public static var slider:Number = 0.4;      
       
-      public static var color1:String = "";
+      public static var color1:String = "102";
 
-      public static var color2:String = "";    
+      public static var color2:String = "10027008";    
 
-      public static var color4:String = "";    
+      public static var color4:String = "3368703";    
       
-      public static var color3:String = "";  
+      public static var color3:String = "12104812";  
 
       public static var PressorTitle:String;
 
@@ -93,6 +101,8 @@
          
       public static var MenuMusic:Sound = new (menu); 
 
+      public static var EasterEgg:Sound = new (sukapontheme); 
+
       public static var onClick:Sound = new (ff7cursor); 
 
       public static var back:Sound = new (backSound); 
@@ -116,69 +126,31 @@
       public function Main()
       {
          super();
-         var c:Color = new Color();
+         bgimage.psb_spread.visible = false;  
+         suka.visible = false;       
          settingswindow.visible = false;
          aboutwindow.visible = false;         
-         stage.nativeWindow.title = pressortext.text = "Pressor " + version.text;
-         PressorTitle = "Pressor " + version.text + " | ";
+         stage.nativeWindow.title = pressortext.text = "Pressor " + foreground.version.text;
+         PressorTitle = "Pressor " + foreground.version.text + " | ";
          SaveData.importer();        
          Log.create(this);
          Log.handleExceptions(this, true); 
+         SFXtrans = new SoundTransform(slider);
+         Musictrans = new SoundTransform(mslider);
          if(muteCheck == true)
          {
             concert();
-         }         
-         color.saturation = color.hue = color.contrast = color.brightness = 0; 
-         filter = new ColorMatrixFilter(color.CalculateFinalFlatArray());
-         decomp.ucomp_button.filters = comp.ucomp_button.filters = compF.ucomp_button.filters = decompF.ucomp_button.filters = [filter];        
-         if(color1 !== "")
-         {            
-            color.saturation = -100;
-            c.setTint(color1, 0.69);
-            decomp.ucomp_button.transform.colorTransform = c;
-            c.setTint(color2, 0.69);
-            comp.ucomp_button.transform.colorTransform = c;
-            c.setTint(color3, 0.69);
-            decompF.ucomp_button.transform.colorTransform = c;
-            c.setTint(color4, 0.69); 
-            compF.ucomp_button.transform.colorTransform = c;
          }
-         bgimage.mouseEnabled = false;
-         bgimage.mouseChildren = false;
-         SFXtrans = new SoundTransform(slider);
-         Musictrans = new SoundTransform(mslider);
-         Log.log("slider is " + slider + " mslider is " + mslider);         
-         Musicchannel = MenuMusic.play(0, int.MAX_VALUE, Musictrans);
-         try
-         {   
-            var files:Array = screens.getDirectoryListing();
-            for (i = 0; i < files.length; i++)
-            {              
-               if(files[i].extension == "png" || files[i].extension == "jpg")
-               {
-                  continue;          
-               }
-               else
-               {
-                  files.removeAt(i); 
-                  i--
-               }               
-            }
-            n = randomRange(0, files.length - 1);                    
-            loadme = files[n].nativePath;
-            Log.log("Found " + loadme);   
-            loader.load(new URLRequest(loadme));                
-            loader.contentLoaderInfo.addEventListener(Event.COMPLETE, on_loadComplete);                   
+         if(sukaponchecked == true)
+         {
+            easteregg();
          }
-         catch(e:Error)
-         {   
-            Log.log("Image failed to load: " + e.message)
-            if(!screens.exists)
-            {
-               screens.createDirectory();
-               Log.log("Created a directory for screens here: " + screens.nativePath)
-            }            
-         }		   
+         else
+         {
+            buttoncolors();               
+            Musicchannel = MenuMusic.play(0, int.MAX_VALUE, Musictrans);
+            imageloader();  
+         }                
          decomp.addEventListener(MouseEvent.CLICK,this.doIt);
          comp.addEventListener(MouseEvent.CLICK,this.doIt);
          decompF.addEventListener(MouseEvent.CLICK,this.doIt);
@@ -196,23 +168,94 @@
          compF.addEventListener(MouseEvent.ROLL_OUT, normalState);
          music.addEventListener(MouseEvent.ROLL_OVER, hoverState);
          music.addEventListener(MouseEvent.ROLL_OUT, normalState);
-         music.addEventListener(MouseEvent.CLICK, concert);               
+         music.addEventListener(MouseEvent.CLICK, concert);            
+      }
+
+      private function updateCart(e:MouseEvent):void
+      {
+         if(e.currentTarget.name == "cb1")
+         {
+            imagebool = !imagebool
+            if(imagebool == false)
+            {
+               bgimage.removeChild(loader)
+            }
+            else
+            {
+               imageloader()
+            }
+         }
+         else if(e.currentTarget.name == "cb2")
+         {
+            Log.log("oh cmon before it's " + sukaponchecked)
+            sukaponchecked = !sukaponchecked;
+            Log.log("oh cmon now it's " + sukaponchecked)
+            if(sukaponchecked == true)
+            {
+               easteregg();
+            }
+            if(sukaponchecked == false)
+            {
+              settingswindow.wrapper.cb1.visible = true;
+              settingswindow.decomp.visible = true;
+              settingswindow.decompF.visible = true;
+              settingswindow.comp.visible = true;
+              settingswindow.compF.visible = true;
+              bgimage.psb_spread.visible = false; 
+              suka.visible = false;
+              imageloader();
+              var c:Color = new Color();
+              color.saturation = color.contrast = color.brightness = 0; 
+              color.hue = -1;           
+              filter = new ColorMatrixFilter(color.CalculateFinalFlatArray());
+              foreground.filters = [filter];  
+              easteregg_act = false;
+              buttoncolors();
+              Musicchannel.stop();
+              Musicchannel = MenuMusic.play(0, int.MAX_VALUE, Musictrans);
+            }            
+         }
+         SaveData.export();
       }
       
 	  function openSettings(param1:MouseEvent) : void
       {        
         settingswindow.visible = true;
-        settingswindow.decomp.selectedColor = color1;
-        settingswindow.comp.selectedColor = color2;
-        settingswindow.decompF.selectedColor = color3;
-        settingswindow.compF.selectedColor = color4;
-        settingswindow.menuslider.value =  mslider * 10;
+        if(ponpon == false)
+        {
+           settingswindow.sukaegg.visible = false;
+        }
+        else
+        {
+           settingswindow.sukaegg.visible = true;
+        }
+        if(imagebool == true)
+        {
+           settingswindow.wrapper.cb1.selected = true;
+        }
+        if(easteregg_act == true)
+        {
+           Log.log("that's tough, buddy");           
+           settingswindow.wrapper.cb1.visible = false;
+           settingswindow.decomp.visible = false;
+           settingswindow.decompF.visible = false;
+           settingswindow.comp.visible = false;
+           settingswindow.compF.visible = false;
+        }
+        else
+        {
+           settingswindow.decomp.selectedColor = color1;
+           settingswindow.comp.selectedColor = color2;
+           settingswindow.decompF.selectedColor = color3;
+           settingswindow.compF.selectedColor = color4;
+        }
+        settingswindow.wrapper.menuslider.value =  mslider * 10;
         settingswindow.msliden.text = mslider * 10;
-        settingswindow.sfxslider.value = slider * 10;
+        settingswindow.wrapper.sfxslider.value = slider * 10;
         settingswindow.sliden.text = slider * 10;
-        settingswindow.menuslider.minimum = settingswindow.sfxslider.minimum = 0;
-        settingswindow.menuslider.maximum = settingswindow.sfxslider.maximum =  10;
-        settingswindow.menuslider.snapInterval = settingswindow.sfxslider.snapInterval = 1;
+        settingswindow.wrapper.menuslider.minimum = settingswindow.wrapper.sfxslider.minimum = 0;
+        settingswindow.wrapper.menuslider.maximum = settingswindow.wrapper.sfxslider.maximum =  10;
+        settingswindow.wrapper.menuslider.snapInterval = settingswindow.wrapper.sfxslider.snapInterval = 1;
         if(param1.currentTarget.name == "Sexitbutton") 
         {            
            SFXchannel = back.play(0, 1, SFXtrans);
@@ -235,8 +278,11 @@
         settingswindow.aboutbutton.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
         settingswindow.aboutbutton.addEventListener(MouseEvent.ROLL_OVER, hoverState);
         settingswindow.aboutbutton.addEventListener(MouseEvent.ROLL_OUT, normalState); 
-        settingswindow.sfxslider.addEventListener(SliderEvent.CHANGE, bResize); 
-        settingswindow.menuslider.addEventListener(SliderEvent.CHANGE, bResize);               
+        settingswindow.wrapper.sfxslider.addEventListener(SliderEvent.CHANGE, bResize); 
+        settingswindow.wrapper.menuslider.addEventListener(SliderEvent.CHANGE, bResize); 
+        settingswindow.wrapper.sfxslider.addEventListener(SliderEvent.THUMB_RELEASE, bResize);
+        settingswindow.wrapper.cb1.addEventListener(MouseEvent.CLICK,updateCart);
+        settingswindow.sukaegg.sukabox.cb2.addEventListener(MouseEvent.CLICK,updateCart);                            
       }
 
      function onMouseDown(e:MouseEvent):void 
@@ -256,6 +302,8 @@
          settingswindow.exitbutton.removeEventListener(MouseEvent.ROLL_OUT, normalState);
          settingswindow.aboutbutton.removeEventListener(MouseEvent.ROLL_OVER, hoverState);
          settingswindow.aboutbutton.removeEventListener(MouseEvent.ROLL_OUT, normalState);
+         settingswindow.wrapper.cb1.removeEventListener(MouseEvent.CLICK,updateCart); 
+         settingswindow.sukaegg.sukabox.cb2.removeEventListener(MouseEvent.CLICK,updateCart); 
          if(e.currentTarget.name == "aboutbutton") 
          {            
             SFXchannel = clicked.play(0, 1, SFXtrans);   
@@ -273,8 +321,17 @@
 	  
 	  function bResize(event:SliderEvent) : void
      {         
+         Log.log("Check the event is " + event.type);
          Log.log("Size of em are " + event.target.value);
          Log.log("The number came from " + event.target.name);
+         if(event.target.name == "menuslider")
+         {
+            mslider = event.target.value / 10;
+            Musictrans = new SoundTransform(event.target.value / 10); 
+            Musicchannel.soundTransform = Musictrans;
+            settingswindow.msliden.text = event.target.value;            
+            Log.log("mslider is " + mslider)
+         } 
          if(event.target.name == "sfxslider")
          {
             slider = event.target.value / 10;
@@ -282,21 +339,17 @@
             SFXchannel.soundTransform = SFXtrans;
             settingswindow.sliden.text = event.target.value;            
             Log.log("slider is " + slider)
-            
-         }
-         else if(event.target.name == "menuslider")
-         {
-            mslider = event.target.value / 10;
-            Musictrans = new SoundTransform(event.target.value / 10); 
-            Musicchannel.soundTransform = Musictrans;
-            settingswindow.msliden.text = event.target.value;            
-            Log.log("mslider is " + mslider)
-         }
+            if(event.type == "thumbRelease")
+            {
+               SFXchannel = clicked.play(0, 1, SFXtrans);   
+            }         
+         }            
          SaveData.export();      
       }
 
       function hoverState(event:MouseEvent):void
       {         
+         suka.visible = false;
          event.currentTarget.gotoAndStop(2);
          if(sfxdelay !== true && event.currentTarget.name !== "sukapon")
          {
@@ -330,14 +383,114 @@
            pressortext.text = "Mute/unmute all the sounds.";
            break;  
           default:
-            pressortext.text = "Pressor " + version.text;            
+            pressortext.text = "Pressor " + foreground.version.text;            
             break;
          };        
       }
 
-      function easteregg(event:MouseEvent):void
+      function easteregg(event:* = null) : void
       {
-         Log.log("Not ready yet :)");
+         if(easteregg_act !== true)
+         {
+           var c:Color = new Color();
+           Log.log("Thank you for finding me :)");
+           sukaponchecked = true;
+           settingswindow.wrapper.cb1.visible = false;
+           settingswindow.decomp.visible = false;
+           settingswindow.decompF.visible = false;
+           settingswindow.comp.visible = false;
+           settingswindow.compF.visible = false;
+           settingswindow.sukaegg.sukabox.cb2.selected = true;
+           easteregg_act = true;
+           ponpon = true;    
+           SaveData.export();
+           try
+           {
+               Musicchannel.stop();	 
+               bgimage.removeChild(loader);   
+           }
+           catch(e:Error)
+           {
+              Log.log("There is no image/sound to remove. " + e.message)
+           }           
+           bgimage.psb_spread.visible = true;            
+           color.saturation = color.contrast = color.brightness = 0; 
+           color.hue = 74;           
+           filter = new ColorMatrixFilter(color.CalculateFinalFlatArray());
+           foreground.filters = [filter];    
+           buttoncolors(true); 		     
+           Musicchannel = EasterEgg.play(0, int.MAX_VALUE, Musictrans);
+         }
+      }
+
+      function buttoncolors(suki:Boolean = false):void
+      {
+         var c:Color = new Color();
+         var Acolor:String = color1;
+         var Bcolor:String = color2;
+         var Ccolor:String = color3;
+         var Dcolor:String = color4;
+         if(suki == true)
+         {
+            Acolor = Bcolor = Ccolor = Dcolor = "1";
+         }
+         color.saturation = color.hue = color.contrast = color.brightness = 0; 
+         filter = new ColorMatrixFilter(color.CalculateFinalFlatArray());
+         decomp.ucomp_button.filters = comp.ucomp_button.filters = compF.ucomp_button.filters = decompF.ucomp_button.filters = [filter];        
+         if(Acolor && Bcolor && Ccolor && Dcolor > 0)
+         {            
+            color.saturation = -100;
+            c.setTint(Acolor, 0.69);
+            decomp.ucomp_button.transform.colorTransform = c;
+            c.setTint(Bcolor, 0.69);
+            comp.ucomp_button.transform.colorTransform = c;
+            c.setTint(Ccolor, 0.69);
+            decompF.ucomp_button.transform.colorTransform = c;
+            c.setTint(Dcolor, 0.69); 
+            compF.ucomp_button.transform.colorTransform = c;
+         }
+         bgimage.mouseEnabled = false;
+         bgimage.mouseChildren = false;                  
+         Log.log("slider is " + slider + " mslider is " + mslider); 
+      }
+
+      function imageloader():void
+      {
+         Log.log("Booting up image loader");
+         if(imagebool == true)
+         {
+            try
+            {   
+               var files:Array = screens.getDirectoryListing();
+               for (i = 0; i < files.length; i++)
+               {              
+                  if(files[i].extension == "png" || files[i].extension == "jpg")
+                  {
+                     continue;          
+                  }
+                  else
+                  {
+                     files.removeAt(i); 
+                     i--
+                  }               
+               }
+               n = randomRange(0, files.length - 1);                    
+               loadme = files[n].nativePath;
+               Log.log("Found " + loadme);   
+               loader.load(new URLRequest(loadme));                
+               loader.contentLoaderInfo.addEventListener(Event.COMPLETE, on_loadComplete);                   
+            }
+            catch(e:Error)
+            {   
+               Log.log("Image failed to load: " + e.message)
+               if(!screens.exists)
+               {
+                  screens.createDirectory();
+                  Log.log("Created a directory for screens here: " + screens.nativePath)
+               }            
+            }		   
+         }
+         Log.log("Finished loading image!");
       }
 
       function concert(event:* = null):void
@@ -364,6 +517,10 @@
       
       function normalState(event:MouseEvent):void
       {
+         if(easteregg_act == true)
+         {
+            suka.visible = true;
+         }
          if(event.currentTarget.name !== "sukapon")
          {
             event.currentTarget.gotoAndStop(1); 
@@ -372,7 +529,7 @@
          {
             event.currentTarget.stop();
          }         
-         pressortext.text = "Pressor " + version.text;
+         pressortext.text = "Pressor " + foreground.version.text;
       }
 
       function changeColor(param1:ColorPickerEvent) : void
@@ -409,7 +566,7 @@
       public function doIt(param1:MouseEvent) : void
       {
          SFXchannel = clicked.play(0, 1, SFXtrans);
-         pressortext.text = "Pressor " + version.text;         
+         pressortext.text = "Pressor " + foreground.version.text;         
          if(param1.currentTarget.name == "decomp" || param1.currentTarget.name == "decompF")
          {
             this.WexisanIdiot = true;
