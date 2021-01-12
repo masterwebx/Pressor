@@ -15,13 +15,12 @@
    import flash.system.*;    
    import SaveData; 
    import Log;    
-   import flash.filters.*;
-	
+   import flash.filters.*;	
   
    public class Main extends MovieClip
    {      
       
-      private var WexisanIdiot:Boolean;          
+      private var WexisanIdiot:Boolean;  
 
       private var sukapon:Boolean;
 
@@ -35,7 +34,7 @@
 
       public static var autocompress:Boolean = false; //not ready yet
 
-      public static var muteCheck:Boolean;
+      public static var muteCheck:Boolean = false;
 
       public static var imagebool:Boolean = true;
 
@@ -49,7 +48,11 @@
 
       public static var l:int = 0;
 
-      public static var n:int = 0;   
+      public static var n:int = 0;  
+
+      public static var load:int = 0;
+
+      private var whichloader:int = 0; 
 
       private var thelength:int;    
 
@@ -67,9 +70,15 @@
 
       public static var PressorTitle:String;
 
-      public static var screenString:String = File.applicationDirectory.resolvePath("wallpapers").nativePath; 
+      public static var screenString:String = File.applicationDirectory.resolvePath("wallpapers").nativePath;
 
-      public static var loadme:String;         
+      public static var musicString:String = File.applicationDirectory.resolvePath("music").nativePath; 
+
+      public static var sfxString:String = File.applicationDirectory.resolvePath("sfx").nativePath;
+
+      public static var loadme:String;  
+      
+      public static var specialname:String;        
 
       public static var processArgs = new Vector.<String>;   
 
@@ -83,6 +92,12 @@
 
       public static var screens:File = new File(screenString);
 
+      public static var musics:File = new File(musicString);
+
+      public static var sfxs:File = new File(sfxString);
+
+      public static var loadmeup:File = new File;
+
       public static var txtFilter:FileFilter;
 
       private var filter:ColorMatrixFilter; 
@@ -91,7 +106,7 @@
       
       public static var nativeProcessStartupInfo = new NativeProcessStartupInfo();  
       
-      public static var loader:Loader = new Loader();     
+      public static var loader:Loader = new Loader();  
 
       private var FileData:ByteArray = new ByteArray;
 
@@ -99,17 +114,25 @@
 
       private var color:AdjustColor = new AdjustColor();       
          
-      public static var MenuMusic:Sound = new (menu); 
+      public static var MenuMusic:Sound;
 
-      public static var EasterEgg:Sound = new (sukapontheme); 
+      public static var B_MenuMusic:Sound = new (menu);     
 
-      public static var onClick:Sound = new (ff7cursor); 
+      public static var onClick:Sound;         
 
-      public static var back:Sound = new (backSound); 
+      public static var back:Sound;      
 
-      public static var onClickSet:Sound = new (wark); 
+      public static var onClickSet:Sound;      
 
-      public static var clicked:Sound = new (confirm); 
+      public static var clicked:Sound;  
+
+      public static var B_onClick:Sound = new (ff7cursor);         
+
+      public static var B_back:Sound = new (backSound);      
+
+      public static var B_onClickSet:Sound = new (wark);      
+
+      public static var B_clicked:Sound = new (confirm);      
 
       public static var SFXtrans:SoundTransform = new SoundTransform(0.3); 
 
@@ -126,6 +149,7 @@
       public function Main()
       {
          super();
+         bgimage.ff7r.visible = false;
          bgimage.psb_spread.visible = false;  
          suka.visible = false;       
          settingswindow.visible = false;
@@ -144,13 +168,17 @@
          if(sukaponchecked == true)
          {
             easteregg();
+            sfxloader();
          }
          else
-         {
-            buttoncolors();               
-            Musicchannel = MenuMusic.play(0, int.MAX_VALUE, Musictrans);
+         {                 
             imageloader();  
-         }                
+         }
+         setTimeout(addListeners, 250);                           
+      }
+
+      function addListeners() : void
+      {
          decomp.addEventListener(MouseEvent.CLICK,this.doIt);
          comp.addEventListener(MouseEvent.CLICK,this.doIt);
          decompF.addEventListener(MouseEvent.CLICK,this.doIt);
@@ -168,7 +196,7 @@
          compF.addEventListener(MouseEvent.ROLL_OUT, normalState);
          music.addEventListener(MouseEvent.ROLL_OVER, hoverState);
          music.addEventListener(MouseEvent.ROLL_OUT, normalState);
-         music.addEventListener(MouseEvent.CLICK, concert);            
+         music.addEventListener(MouseEvent.CLICK, concert); 
       }
 
       private function updateCart(e:MouseEvent):void
@@ -176,7 +204,7 @@
          if(e.currentTarget.name == "cb1")
          {
             imagebool = !imagebool
-            if(imagebool == false)
+            if(imagebool == false && bgimage.contains(loader) == true)
             {
                bgimage.removeChild(loader)
             }
@@ -186,16 +214,16 @@
             }
          }
          else if(e.currentTarget.name == "cb2")
-         {
-            Log.log("oh cmon before it's " + sukaponchecked)
-            sukaponchecked = !sukaponchecked;
-            Log.log("oh cmon now it's " + sukaponchecked)
+         {            
+            sukaponchecked = !sukaponchecked;            
             if(sukaponchecked == true)
             {
                easteregg();
             }
             if(sukaponchecked == false)
             {
+              Musicchannel.stop();
+              var c:Color = new Color();
               settingswindow.wrapper.cb1.visible = true;
               settingswindow.decomp.visible = true;
               settingswindow.decompF.visible = true;
@@ -203,16 +231,14 @@
               settingswindow.compF.visible = true;
               bgimage.psb_spread.visible = false; 
               suka.visible = false;
-              imageloader();
-              var c:Color = new Color();
+              easteregg_act = false;
+              load = 0;
+              imageloader(); 
+              buttoncolors();             
               color.saturation = color.contrast = color.brightness = 0; 
               color.hue = -1;           
-              filter = new ColorMatrixFilter(color.CalculateFinalFlatArray());
-              foreground.filters = [filter];  
-              easteregg_act = false;
-              buttoncolors();
-              Musicchannel.stop();
-              Musicchannel = MenuMusic.play(0, int.MAX_VALUE, Musictrans);
+              filter = new ColorMatrixFilter(color.CalculateFinalFlatArray());              
+              foreground.icon.filters = [filter];                     
             }            
          }
          SaveData.export();
@@ -315,30 +341,24 @@
             aboutwindow.sukapon.addEventListener(MouseEvent.CLICK,this.easteregg);
             aboutwindow.sukapon.addEventListener(MouseEvent.ROLL_OVER, hoverState);
             aboutwindow.sukapon.addEventListener(MouseEvent.ROLL_OUT, normalState);           
-         } 
-         
+         }        
      }
 	  
 	  function bResize(event:SliderEvent) : void
-     {         
-         Log.log("Check the event is " + event.type);
-         Log.log("Size of em are " + event.target.value);
-         Log.log("The number came from " + event.target.name);
+     {
          if(event.target.name == "menuslider")
          {
             mslider = event.target.value / 10;
             Musictrans = new SoundTransform(event.target.value / 10); 
             Musicchannel.soundTransform = Musictrans;
-            settingswindow.msliden.text = event.target.value;            
-            Log.log("mslider is " + mslider)
+            settingswindow.msliden.text = event.target.value;      
          } 
          if(event.target.name == "sfxslider")
          {
             slider = event.target.value / 10;
             SFXtrans = new SoundTransform(event.target.value / 10);
             SFXchannel.soundTransform = SFXtrans;
-            settingswindow.sliden.text = event.target.value;            
-            Log.log("slider is " + slider)
+            settingswindow.sliden.text = event.target.value;     
             if(event.type == "thumbRelease")
             {
                SFXchannel = clicked.play(0, 1, SFXtrans);   
@@ -351,12 +371,12 @@
       {         
          suka.visible = false;
          event.currentTarget.gotoAndStop(2);
-         if(sfxdelay !== true && event.currentTarget.name !== "sukapon")
+         if(event.currentTarget.name == "settingsicon")
          {
-            if(event.currentTarget.name == "settingsicon")
-            {
-               SFXchannel = onClickSet.play(0, 1, SFXtrans);
-            }
+            SFXchannel = onClickSet.play(0, 1, SFXtrans);
+         }
+         else if(sfxdelay !== true && event.currentTarget.name !== "sukapon" )
+         {            
             SFXchannel = onClick.play(0, 1, SFXtrans);    
          }
          else
@@ -364,26 +384,29 @@
             sfxdelay = false;
          }       
          switch (event.currentTarget.name){
-          case "decomp":            
+            case "decomp":            
             pressortext.text = "Choose one or more files to uncompress.";
             break;
-          case "decompF":
+            case "decompF":
             pressortext.text = "Choose a folder to uncompress.";
             break;
-          case "comp":
+            case "comp":
             pressortext.text = "Choose one or more files to compress.";
             break;
-          case "compF":
+            case "compF":
             pressortext.text = "Choose a folder to compress.";
             break;
- 		    case "settingsicon":
-           pressortext.text = "Adjust settings for Pressor.";
-           break;
-           case "music":
-           pressortext.text = "Mute/unmute all the sounds.";
-           break;  
-          default:
-            pressortext.text = "Pressor " + foreground.version.text;            
+ 		      case "settingsicon":
+            pressortext.text = "Adjust settings for Pressor.";
+            break;
+            case "music":
+            pressortext.text = "Mute/unmute all the sounds.";
+            break;  
+            default:
+            if(easteregg_act == true)
+            {
+               suka.visible = true;
+            }                                 
             break;
          };        
       }
@@ -392,6 +415,7 @@
       {
          if(easteregg_act !== true)
          {
+           bgimage.ff7r.visible = false;
            var c:Color = new Color();
            Log.log("Thank you for finding me :)");
            sukaponchecked = true;
@@ -417,9 +441,10 @@
            color.saturation = color.contrast = color.brightness = 0; 
            color.hue = 74;           
            filter = new ColorMatrixFilter(color.CalculateFinalFlatArray());
-           foreground.filters = [filter];    
-           buttoncolors(true); 		     
-           Musicchannel = EasterEgg.play(0, int.MAX_VALUE, Musictrans);
+           foreground.icon.filters = [filter];    
+           buttoncolors(true); 
+           MenuMusic = new (sukapontheme);		     
+           Musicchannel = MenuMusic.play(0, int.MAX_VALUE, Musictrans);
          }
       }
 
@@ -450,12 +475,12 @@
             compF.ucomp_button.transform.colorTransform = c;
          }
          bgimage.mouseEnabled = false;
-         bgimage.mouseChildren = false;                  
-         Log.log("slider is " + slider + " mslider is " + mslider); 
+         bgimage.mouseChildren = false;         
       }
 
       function imageloader():void
       {
+         bgimage.ff7r.visible = false;
          Log.log("Booting up image loader");
          if(imagebool == true)
          {
@@ -463,8 +488,8 @@
             {   
                var files:Array = screens.getDirectoryListing();
                for (i = 0; i < files.length; i++)
-               {              
-                  if(files[i].extension == "png" || files[i].extension == "jpg")
+               {        
+                  if(files[i].extension == "png")
                   {
                      continue;          
                   }
@@ -476,40 +501,200 @@
                }
                n = randomRange(0, files.length - 1);                    
                loadme = files[n].nativePath;
-               Log.log("Found " + loadme);   
-               loader.load(new URLRequest(loadme));                
-               loader.contentLoaderInfo.addEventListener(Event.COMPLETE, on_loadComplete);                   
+               Log.log("Found " + files[n].name);   
+               loader.load(new URLRequest(loadme));                     
+               loader.contentLoaderInfo.addEventListener(Event.COMPLETE, on_imageComplete);
+               specialname = files[n].name.replace(".png","").toLowerCase()
+               Log.log("specialname " + specialname)                
             }
             catch(e:Error)
             {   
+               bgimage.ff7r.visible = true;
                Log.log("Image failed to load: " + e.message)
                if(!screens.exists)
                {
                   screens.createDirectory();
                   Log.log("Created a directory for screens here: " + screens.nativePath)
-               }            
+               }
+               if(load !== 2)
+               { 
+                  musicloader();
+                  load++
+               }          
             }		   
          }
-         Log.log("Finished loading image!");
+         Log.log("Finished loading image!");         
       }
+
+      function musicloader():void
+      {
+         var exceptional:Boolean;
+         Log.log("Booting up music loader");        
+         try
+         {   
+            var files:Array = musics.getDirectoryListing();
+            for (i = 0; i < files.length; i++)
+            {                      
+               if(files[i].name.replace(".mp3","").toLowerCase() == specialname && specialname !== "")
+               {                 
+                  exceptional = true; 
+                  break;                          
+               }
+               if(files[i].extension == "mp3")
+               {
+                  continue;          
+               }
+               else
+               {
+                  files.removeAt(i); 
+                  i--
+               }               
+            }
+            if(exceptional == true)
+            {
+               loadme = files[i].nativePath;
+               n = i
+            }
+            else if(exceptional == false)
+            {
+               n = randomRange(0, files.length - 1);                    
+               loadme = files[n].nativePath;
+            }
+            Log.log("Found music " + loadme); 
+            specialname = files[n].name.replace(".mp3","").toLowerCase()
+            Log.log("specialname " + specialname)    
+            MenuMusic = new Sound();                       
+            MenuMusic.addEventListener(Event.COMPLETE, on_musicComplete);
+            MenuMusic.load(new URLRequest(loadme));
+                            
+         }
+         catch(e:Error)
+         {   
+            Log.log("Music failed to load: " + e.message)
+            MenuMusic = B_MenuMusic
+            Musicchannel = MenuMusic.play(0, int.MAX_VALUE, Musictrans);
+            if(!musics.exists)
+            {
+               musics.createDirectory();
+               Log.log("Created a directory for musics here: " + musics.nativePath)
+            }
+            if(load !== 2)
+            {
+               sfxloader();
+               load++
+            }               
+         } 
+         Log.log("Finished loading music!");         
+      }
+
+      function sfxloader(music:String = null):void
+      {
+         var exceptional:Boolean;
+         Log.log("Booting up sfx loader");        
+         try
+         {   
+            var files:Array = sfxs.getDirectoryListing();
+            Log.log(sfxs.getDirectoryListing());
+            for (i = 0; i < files.length; i++)
+            {              
+               if(files[i].name.replace(".mp3","").toLowerCase() == specialname && specialname !== "")
+               {
+                  exceptional = true;  
+                  break;
+                         
+               }
+               if(files[i].isDirectory == true)
+               {
+                  continue;          
+               }
+               else
+               {
+                  files.removeAt(i); 
+                  i--
+               }               
+            }
+            if(exceptional == true)
+            {
+               Log.log("heya");
+               loadmeup = files[i];
+               n = i
+            }
+            else if(exceptional == false)
+            {
+               n = randomRange(0, files.length - 1);                    
+               loadmeup = files[n];
+            }
+            Log.log("Found SFX " + files[n].name);            
+            files = loadmeup.getDirectoryListing();                      
+            for (i = 0; i < files.length; i++)
+            { 
+              if(files[i].name.indexOf("hover") !== -1 && files[i].name.indexOf(".mp3") !== -1)
+              {
+                  Log.log("hover" + files[i].nativePath); 
+                  onClick = new Sound();                  
+                  onClick.load(new URLRequest(files[i].nativePath));                
+                  onClick.addEventListener(Event.COMPLETE, on_SFXComplete);              
+              }
+              if(files[i].name.indexOf("back") !== -1 && files[i].name.indexOf(".mp3") !== -1)
+              {
+                  Log.log("back" + files[i].nativePath); 
+                  back = new Sound();                  
+                  back.load(new URLRequest(files[i].nativePath));                
+                  back.addEventListener(Event.COMPLETE, on_SFXComplete);              
+              } 
+              if(files[i].name.indexOf("click") !== -1 && files[i].name.indexOf(".mp3") !== -1)
+              {
+                  Log.log("click" + files[i].nativePath); 
+                  clicked = new Sound();                  
+                  clicked.load(new URLRequest(files[i].nativePath));                
+                  clicked.addEventListener(Event.COMPLETE, on_SFXComplete);              
+              } 
+              if(files[i].name.indexOf("settings") !== -1 && files[i].name.indexOf(".mp3") !== -1)
+              {
+                  Log.log("settings" + files[i].nativePath); 
+                  onClickSet = new Sound();                  
+                  onClickSet.load(new URLRequest(files[i].nativePath));                
+                  onClickSet.addEventListener(Event.COMPLETE, on_SFXComplete);              
+              }     
+              if(i == 3)
+              {
+                 break;
+              } 
+            }                   
+         }
+         catch(e:Error)
+         {   
+            onClick = B_onClick;
+            back = B_back;
+            onClickSet = B_onClickSet;
+            clicked = B_clicked;    
+            Log.log("SFX failed to load: " + e.message)
+            if(!sfxs.exists)
+            {
+               sfxs.createDirectory();
+               Log.log("Created a directory for SFX here: " + sfxs.nativePath)
+            }
+            if(easteregg_act !== true)
+            { 
+               buttoncolors();
+            }               
+         }
+         Log.log("Finished loading SFX!");         
+      }  
 
       function concert(event:* = null):void
       {
-         if(music.currentFrame == 1)
+         if(muteCheck == false)
          {
             music.gotoAndStop(2);
-            SoundMixer.soundTransform = new SoundTransform(0);
-            music.removeEventListener(MouseEvent.ROLL_OVER, hoverState);
-            music.removeEventListener(MouseEvent.ROLL_OUT, normalState);
+            SoundMixer.soundTransform = new SoundTransform(0);            
             muteCheck = true;
             SaveData.export(); 
          }
          else
          {
             music.gotoAndStop(1);
-            SoundMixer.soundTransform = new SoundTransform(1);
-            music.addEventListener(MouseEvent.ROLL_OVER, hoverState);
-            music.addEventListener(MouseEvent.ROLL_OUT, normalState); 
+            SoundMixer.soundTransform = new SoundTransform(1);           
             muteCheck = false;
             SaveData.export();
          }
@@ -741,13 +926,39 @@
          pressortext.text = stage.nativeWindow.title + " | Finished in " +  (endingTime - startingTime) / 1000 + " seconds!";
       }  
 
-      function on_loadComplete(e:Event):void
-      {
+      function on_imageComplete(e:Event):void
+      {       
          var image:DisplayObject = loader.content;       
          image.width = 720;
          image.height = 480;
-         bgimage.addChild(loader);          
-      }    
+         bgimage.addChild(loader);
+         Log.log("It's Bond, James Imaged Bond.")
+         if(load !== 2)
+         {
+           musicloader(); 
+           load++
+         }            
+      } 
+
+      function on_musicComplete(e:Event):void
+      {
+         Musicchannel = MenuMusic.play(0, int.MAX_VALUE, Musictrans);
+         Log.log("gaming")
+         if(load !== 2)
+         {
+           sfxloader();
+           load++
+         }                    
+      }   
+
+      function on_SFXComplete(e:Event):void
+      {         
+         Log.log("sfx bois");
+         if(easteregg_act !== true)
+         { 
+            buttoncolors();
+         }                 
+      }
 
       function randomRange(minNum:Number, maxNum:Number):Number 
       {         
