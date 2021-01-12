@@ -1,255 +1,513 @@
 ﻿package
 {
-   import flash.display.MovieClip;
-   import flash.display.Sprite;
-   import flash.events.Event;
-   import flash.events.FileListEvent;
-   import flash.events.MouseEvent;
-   import flash.net.FileFilter;
-   import flash.net.FileReference;
-   import flash.text.TextField;
-   import flash.text.TextFormat;
-   import flash.utils.ByteArray;
-   import com.hurlant.util.Base64;
-   import flash.utils.CompressionAlgorithm;
+   import flash.display.*;    
+   import flash.media.*;
+   import flash.geom.*;
+   import flash.net.*;
+   import fl.events.*;
+   import fl.motion.*;   
+   import flash.events.*;   
+   import flash.net.*;  
+   import flash.text.*;  
+   import flash.utils.*;   
    import flash.filesystem.*;
    import flash.desktop.*;
-   import flash.display.DockIcon;
-   import flash.display.NotificationType;
-   import flash.desktop.NativeApplication;
-   import flash.system.System;
-   import flash.utils.getTimer;
-   import flash.utils.setTimeout;   
-   import SaveData;
-   
+   import flash.system.*;    
+   import SaveData; 
+   import Log;    
+   import flash.filters.*;
 	
-   [SWF(width="400", height="500", frameRate="60")]
+  
    public class Main extends MovieClip
    {      
       
-      private var WexisanIdiot:Boolean; 
+      private var WexisanIdiot:Boolean;          
 
       private var sukapon:Boolean;
 
+      private var sfxdelay:Boolean;
+
+      public static var autocompress:Boolean = false; //not ready yet
+
+      public static var muteCheck:Boolean;
+
       private var startingTime:int;
 
-      private var endingTime:int;
+      private var endingTime:int;  
 
-      public static var autocompress:Boolean = false; 
+      public static var x:int = 0;   
 
-      public static var Acomp:String = "Compress files!";
+      public static var i:int = 0;
+
+      public static var l:int = 0;
+
+      public static var n:int = 0;   
+
+      private var thelength:int;    
+
+      public static var mslider:Number = 0.6;
+
+      public static var slider:Number = 0.4;      
       
-      public static var color1:String = "13844264";
+      public static var color1:String = "";
 
-      public static var color4:String = "0x1ea8e1";
+      public static var color2:String = "";    
 
-      public static var Adecomp:String = "Uncompress files!";
-
-      public static var AdecompF:String = "Uncompress folder!";
+      public static var color4:String = "";    
       
-      public static var color3:String = "0xa0955f";
+      public static var color3:String = "";  
 
-      public static var AcompF:String = "Compress folder!";
+      public static var PressorTitle:String;
 
-      public static var textcolor:String = "0xffffff";
+      public static var screenString:String = File.applicationDirectory.resolvePath("wallpapers").nativePath; 
 
-      public static var fontY:String = "Verdana";
+      public static var loadme:String;         
 
-      public static var color2:String = "4015954";
+      public static var processArgs = new Vector.<String>;   
 
-      public static var topsecret:String = "???";
+      public static var files:Vector.<Object> = new Vector.<Object>();
 
       public static var docsDir:File = File.documentsDirectory;
 
-      public static var title:String = "Pressor 2.0 by Wex";
+      public static var SSF2Dir:File = File.documentsDirectory;   
+
+      public static var swffile:File = File.applicationDirectory.resolvePath("ffdec.exe"); 
+
+      public static var screens:File = new File(screenString);
+
+      public static var txtFilter:FileFilter;
+
+      private var filter:ColorMatrixFilter; 
+
+      public static var fs:FileStream = new FileStream();
+      
+      public static var nativeProcessStartupInfo = new NativeProcessStartupInfo();  
+      
+      public static var loader:Loader = new Loader();     
+
+      private var FileData:ByteArray = new ByteArray;
+
+      private var c:ByteArray = new ByteArray();         
+
+      private var color:AdjustColor = new AdjustColor();       
+         
+      public static var MenuMusic:Sound = new (menu); 
+
+      public static var onClick:Sound = new (ff7cursor); 
+
+      public static var back:Sound = new (backSound); 
+
+      public static var onClickSet:Sound = new (wark); 
+
+      public static var clicked:Sound = new (confirm); 
+
+      public static var SFXtrans:SoundTransform = new SoundTransform(0.3); 
+
+      public static var Musictrans:SoundTransform = new SoundTransform(0.6); 
+
+      public static var SFXchannel:SoundChannel;
+
+      public static var Musicchannel:SoundChannel;
+
+      public static var dockIcon:DockIcon = NativeApplication.nativeApplication.icon as DockIcon;             
+
+      public static var oldtime;    
       
       public function Main()
       {
          super();
-         SaveData.importer();
-         stage.nativeWindow.title = title;
-         var square:Sprite = new Sprite();
-         square.graphics.beginFill(color1);
-         square.graphics.drawRect(0,0,9400,125);
-         square.graphics.endFill();      
-         square.y = 250;
-         addChild(square);
-         var square2:Sprite = new Sprite();
-         square2.graphics.beginFill(color2);
-         square2.graphics.drawRect(0,0,9400,125);
-         square2.graphics.endFill();         
-         square2.y = 0;
-         addChild(square2);
-         var square3:Sprite = new Sprite();
-         square3.graphics.beginFill(color3);
-         square3.graphics.drawRect(0,0,9400,125);
-         square3.graphics.endFill();         
-         square3.y = 125;
-         addChild(square3);
-         var square4:Sprite = new Sprite();
-         square4.graphics.beginFill(color4);
-         square4.graphics.drawRect(0,0,9400,125);
-         square4.graphics.endFill();
-         square2.x = square.x = square3.x = square4.x = -3000;
-         square4.y = 375;
-         addChild(square4);
-         var format:TextFormat = new TextFormat();
-         var decomp:TextField = new TextField();
-         var decompF:TextField = new TextField();
-         var comp:TextField = new TextField();         
-         var compF:TextField = new TextField();
-         format.color = textcolor;
-         format.size = 16;
-         format.bold = true;
-         format.font = fontY;
-         var xchange:* = format;
-         comp.defaultTextFormat = decomp.defaultTextFormat =  compF.defaultTextFormat =  decompF.defaultTextFormat = xchange;
-         decompF.x = compF.x = decomp.x = comp.x = 5; 
-         decompF.width = compF.width = decomp.width = comp.width = 620;
-         decompF.height = compF.height = decomp.height = comp.height = 115;  
-         decompF.multiline = compF.multiline = decomp.multiline = comp.multiline = true;
-         decompF.selectable = compF.selectable = decomp.selectable = comp.selectable = false;
-         decomp.y = 10;
-         decompF.y = 135;
-         comp.y = 260;         
-         compF.y = 385;        
-         decomp.text = Adecomp;
-         comp.text = Acomp;
-         decompF.text = AdecompF;
-         compF.text = AcompF;
-         addChild(decomp);
-         addChild(comp);
-         addChild(decompF);
-         addChild(compF);
-         decomp.addEventListener("click",this.doIt);
-         comp.addEventListener("click",this.doIt);
-         decompF.addEventListener("click",this.doIt);
-         compF.addEventListener("click",this.doIt);
-         if(autocompress == true)
+         var c:Color = new Color();
+         settingswindow.visible = false;
+         aboutwindow.visible = false;         
+         stage.nativeWindow.title = pressortext.text = "Pressor " + version.text;
+         PressorTitle = "Pressor " + version.text + " | ";
+         SaveData.importer();        
+         Log.create(this);
+         Log.handleExceptions(this, true); 
+         if(muteCheck == true)
          {
-            stage.addEventListener(Event.ENTER_FRAME,this.secrets);
-			trace("QHATR");
+            concert();
+         }         
+         color.saturation = color.hue = color.contrast = color.brightness = 0; 
+         filter = new ColorMatrixFilter(color.CalculateFinalFlatArray());
+         decomp.ucomp_button.filters = comp.ucomp_button.filters = compF.ucomp_button.filters = decompF.ucomp_button.filters = [filter];        
+         if(color1 !== "")
+         {            
+            color.saturation = -100;
+            c.setTint(color1, 0.69);
+            decomp.ucomp_button.transform.colorTransform = c;
+            c.setTint(color2, 0.69);
+            comp.ucomp_button.transform.colorTransform = c;
+            c.setTint(color3, 0.69);
+            decompF.ucomp_button.transform.colorTransform = c;
+            c.setTint(color4, 0.69); 
+            compF.ucomp_button.transform.colorTransform = c;
          }
-      }   
-     
+         bgimage.mouseEnabled = false;
+         bgimage.mouseChildren = false;
+         SFXtrans = new SoundTransform(slider);
+         Musictrans = new SoundTransform(mslider);
+         Log.log("slider is " + slider + " mslider is " + mslider);         
+         Musicchannel = MenuMusic.play(0, int.MAX_VALUE, Musictrans);
+         try
+         {   
+            var files:Array = screens.getDirectoryListing();
+            for (i = 0; i < files.length; i++)
+            {              
+               if(files[i].extension == "png" || files[i].extension == "jpg")
+               {
+                  continue;          
+               }
+               else
+               {
+                  files.removeAt(i); 
+                  i--
+               }               
+            }
+            n = randomRange(0, files.length - 1);                    
+            loadme = files[n].nativePath;
+            Log.log("Found " + loadme);   
+            loader.load(new URLRequest(loadme));                
+            loader.contentLoaderInfo.addEventListener(Event.COMPLETE, on_loadComplete);                   
+         }
+         catch(e:Error)
+         {   
+            Log.log("Image failed to load: " + e.message)
+            if(!screens.exists)
+            {
+               screens.createDirectory();
+               Log.log("Created a directory for screens here: " + screens.nativePath)
+            }            
+         }		   
+         decomp.addEventListener(MouseEvent.CLICK,this.doIt);
+         comp.addEventListener(MouseEvent.CLICK,this.doIt);
+         decompF.addEventListener(MouseEvent.CLICK,this.doIt);
+         compF.addEventListener(MouseEvent.CLICK,this.doIt);
+		   settingsicon.addEventListener(MouseEvent.CLICK,this.openSettings);         
+		   settingsicon.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+         settingsicon.addEventListener(MouseEvent.ROLL_OUT, normalState);
+         decomp.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+         decomp.addEventListener(MouseEvent.ROLL_OUT, normalState);
+         decompF.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+         decompF.addEventListener(MouseEvent.ROLL_OUT, normalState);
+         comp.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+         comp.addEventListener(MouseEvent.ROLL_OUT, normalState);
+         compF.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+         compF.addEventListener(MouseEvent.ROLL_OUT, normalState);
+         music.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+         music.addEventListener(MouseEvent.ROLL_OUT, normalState);
+         music.addEventListener(MouseEvent.CLICK, concert);               
+      }
       
-      private function doIt(param1:MouseEvent) : void
+	  function openSettings(param1:MouseEvent) : void
+      {        
+        settingswindow.visible = true;
+        settingswindow.decomp.selectedColor = color1;
+        settingswindow.comp.selectedColor = color2;
+        settingswindow.decompF.selectedColor = color3;
+        settingswindow.compF.selectedColor = color4;
+        settingswindow.menuslider.value =  mslider * 10;
+        settingswindow.msliden.text = mslider * 10;
+        settingswindow.sfxslider.value = slider * 10;
+        settingswindow.sliden.text = slider * 10;
+        settingswindow.menuslider.minimum = settingswindow.sfxslider.minimum = 0;
+        settingswindow.menuslider.maximum = settingswindow.sfxslider.maximum =  10;
+        settingswindow.menuslider.snapInterval = settingswindow.sfxslider.snapInterval = 1;
+        if(param1.currentTarget.name == "Sexitbutton") 
+        {            
+           SFXchannel = back.play(0, 1, SFXtrans);
+           aboutwindow.sukapon.gotoAndStop(1);   
+           aboutwindow.visible = false;
+           aboutwindow.Sexitbutton.removeEventListener(MouseEvent.MOUSE_DOWN, openSettings);
+           aboutwindow.Sexitbutton.removeEventListener(MouseEvent.ROLL_OVER, hoverState);
+           aboutwindow.Sexitbutton.removeEventListener(MouseEvent.ROLL_OUT, normalState);
+           aboutwindow.sukapon.removeEventListener(MouseEvent.CLICK,this.easteregg);
+           aboutwindow.sukapon.removeEventListener(MouseEvent.ROLL_OVER, hoverState);
+           aboutwindow.sukapon.removeEventListener(MouseEvent.ROLL_OUT, normalState);            
+        }        
+        settingswindow.decomp.addEventListener(ColorPickerEvent.CHANGE,changeColor);
+        settingswindow.comp.addEventListener(ColorPickerEvent.CHANGE,changeColor);
+        settingswindow.decompF.addEventListener(ColorPickerEvent.CHANGE,changeColor);
+        settingswindow.compF.addEventListener(ColorPickerEvent.CHANGE,changeColor);        
+        settingswindow.exitbutton.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+        settingswindow.exitbutton.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+        settingswindow.exitbutton.addEventListener(MouseEvent.ROLL_OUT, normalState);
+        settingswindow.aboutbutton.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+        settingswindow.aboutbutton.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+        settingswindow.aboutbutton.addEventListener(MouseEvent.ROLL_OUT, normalState); 
+        settingswindow.sfxslider.addEventListener(SliderEvent.CHANGE, bResize); 
+        settingswindow.menuslider.addEventListener(SliderEvent.CHANGE, bResize);               
+      }
+
+     function onMouseDown(e:MouseEvent):void 
+     {        
+         if(e.currentTarget.name == "exitbutton") 
+         {
+            SFXchannel = back.play(0, 1, SFXtrans);    
+            sfxdelay = true;            
+         }
+         settingswindow.visible = false;
+         settingswindow.decomp.removeEventListener(ColorPickerEvent.CHANGE,changeColor);
+         settingswindow.comp.removeEventListener(ColorPickerEvent.CHANGE,changeColor);
+         settingswindow.decompF.removeEventListener(ColorPickerEvent.CHANGE,changeColor);
+         settingswindow.compF.removeEventListener(ColorPickerEvent.CHANGE,changeColor);    
+         settingswindow.exitbutton.removeEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
+         settingswindow.exitbutton.removeEventListener(MouseEvent.ROLL_OVER, hoverState);
+         settingswindow.exitbutton.removeEventListener(MouseEvent.ROLL_OUT, normalState);
+         settingswindow.aboutbutton.removeEventListener(MouseEvent.ROLL_OVER, hoverState);
+         settingswindow.aboutbutton.removeEventListener(MouseEvent.ROLL_OUT, normalState);
+         if(e.currentTarget.name == "aboutbutton") 
+         {            
+            SFXchannel = clicked.play(0, 1, SFXtrans);   
+            aboutwindow.visible = true;
+            aboutwindow.sukapon.suka_init.gotoAndPlay(1);
+            aboutwindow.Sexitbutton.addEventListener(MouseEvent.MOUSE_DOWN, openSettings);
+            aboutwindow.Sexitbutton.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+            aboutwindow.Sexitbutton.addEventListener(MouseEvent.ROLL_OUT, normalState);
+            aboutwindow.sukapon.addEventListener(MouseEvent.CLICK,this.easteregg);
+            aboutwindow.sukapon.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+            aboutwindow.sukapon.addEventListener(MouseEvent.ROLL_OUT, normalState);           
+         } 
+         
+     }
+	  
+	  function bResize(event:SliderEvent) : void
+     {         
+         Log.log("Size of em are " + event.target.value);
+         Log.log("The number came from " + event.target.name);
+         if(event.target.name == "sfxslider")
+         {
+            slider = event.target.value / 10;
+            SFXtrans = new SoundTransform(event.target.value / 10);
+            SFXchannel.soundTransform = SFXtrans;
+            settingswindow.sliden.text = event.target.value;            
+            Log.log("slider is " + slider)
+            
+         }
+         else if(event.target.name == "menuslider")
+         {
+            mslider = event.target.value / 10;
+            Musictrans = new SoundTransform(event.target.value / 10); 
+            Musicchannel.soundTransform = Musictrans;
+            settingswindow.msliden.text = event.target.value;            
+            Log.log("mslider is " + mslider)
+         }
+         SaveData.export();      
+      }
+
+      function hoverState(event:MouseEvent):void
       {         
-         stage.nativeWindow.title = title;
-         trace(param1.currentTarget.name);
-         if(param1.currentTarget.name == "instance5" || param1.currentTarget.name == "instance6")
+         event.currentTarget.gotoAndStop(2);
+         if(sfxdelay !== true && event.currentTarget.name !== "sukapon")
+         {
+            if(event.currentTarget.name == "settingsicon")
+            {
+               SFXchannel = onClickSet.play(0, 1, SFXtrans);
+            }
+            SFXchannel = onClick.play(0, 1, SFXtrans);    
+         }
+         else
+         {
+            sfxdelay = false;
+         }       
+         switch (event.currentTarget.name){
+          case "decomp":            
+            pressortext.text = "Choose one or more files to uncompress.";
+            break;
+          case "decompF":
+            pressortext.text = "Choose a folder to uncompress.";
+            break;
+          case "comp":
+            pressortext.text = "Choose one or more files to compress.";
+            break;
+          case "compF":
+            pressortext.text = "Choose a folder to compress.";
+            break;
+ 		    case "settingsicon":
+           pressortext.text = "Adjust settings for Pressor.";
+           break;
+           case "music":
+           pressortext.text = "Mute/unmute all the sounds.";
+           break;  
+          default:
+            pressortext.text = "Pressor " + version.text;            
+            break;
+         };        
+      }
+
+      function easteregg(event:MouseEvent):void
+      {
+         Log.log("Not ready yet :)");
+      }
+
+      function concert(event:* = null):void
+      {
+         if(music.currentFrame == 1)
+         {
+            music.gotoAndStop(2);
+            SoundMixer.soundTransform = new SoundTransform(0);
+            music.removeEventListener(MouseEvent.ROLL_OVER, hoverState);
+            music.removeEventListener(MouseEvent.ROLL_OUT, normalState);
+            muteCheck = true;
+            SaveData.export(); 
+         }
+         else
+         {
+            music.gotoAndStop(1);
+            SoundMixer.soundTransform = new SoundTransform(1);
+            music.addEventListener(MouseEvent.ROLL_OVER, hoverState);
+            music.addEventListener(MouseEvent.ROLL_OUT, normalState); 
+            muteCheck = false;
+            SaveData.export();
+         }
+      }
+      
+      function normalState(event:MouseEvent):void
+      {
+         if(event.currentTarget.name !== "sukapon")
+         {
+            event.currentTarget.gotoAndStop(1); 
+         }
+         else
+         {
+            event.currentTarget.stop();
+         }         
+         pressortext.text = "Pressor " + version.text;
+      }
+
+      function changeColor(param1:ColorPickerEvent) : void
+      {         
+         color.saturation = -100;
+         var c:Color = new Color();  
+         c.setTint(param1.color, 0.69);
+         filter = new ColorMatrixFilter(color.CalculateFinalFlatArray());
+         switch (param1.currentTarget.name){
+            case "decomp":            
+            decomp.ucomp_button.filters = [filter];
+            decomp.ucomp_button.transform.colorTransform = c;
+            color1 = param1.color;     
+            break;
+            case "comp":            
+            comp.ucomp_button.filters = [filter];     
+            comp.ucomp_button.transform.colorTransform = c;
+            color2 = param1.color;
+            break;
+            case "decompF":            
+            decompF.ucomp_button.filters = [filter]; 
+            decompF.ucomp_button.transform.colorTransform = c;  
+            color3 = param1.color;  
+            break;
+            case "compF":            
+            compF.ucomp_button.filters = [filter];    
+            compF.ucomp_button.transform.colorTransform = c; 
+            color4 = param1.color;
+            break;
+         } 
+         SaveData.export();
+      }    
+      
+      public function doIt(param1:MouseEvent) : void
+      {
+         SFXchannel = clicked.play(0, 1, SFXtrans);
+         pressortext.text = "Pressor " + version.text;         
+         if(param1.currentTarget.name == "decomp" || param1.currentTarget.name == "decompF")
          {
             this.WexisanIdiot = true;
-            var txtFilter:FileFilter = new FileFilter("Select up to 100 files", "*.ssf;*.ssfrec"); 
+            Log.log("Begin uncompression sequence");
+            txtFilter = new FileFilter("Select up to 100 files", "*.ssf;*.ssfrec"); 
          }
          else
          {
             this.WexisanIdiot = false;
-            var txtFilter:FileFilter = new FileFilter("Select up to 100 files", "*.swf"); 
-         }
-         trace("It's " + this.WexisanIdiot + ", he's an idiot?");    
+            Log.log("Begin compression sequence");
+            txtFilter = new FileFilter("Select up to 100 files", "*.swf"); 
+         }        
          try
-         {
-            if(param1.currentTarget.name == "instance6" || param1.currentTarget.name == "instance8")
+         {            
+            if(param1.currentTarget.name == "decompF" || param1.currentTarget.name == "compF")
             {
-               trace("woo wee!");
+               Log.log("One of the folder buttons were pressed.");
                sukapon = true;
                docsDir.browseForDirectory("Select a folder");
                docsDir.addEventListener(Event.SELECT, filesSelected);
             }
             else
             {
-               trace("wee woo!");
+               Log.log("One of the file buttons were pressed.");
                sukapon = false;               
-               docsDir.browseForOpenMultiple("Select files", [txtFilter]);
-               System.gc();
-               System.gc(); 
-               docsDir.addEventListener(FileListEvent.SELECT_MULTIPLE, filesSelected);
-               
-            }
+               docsDir.browseForOpenMultiple("Select files", [txtFilter]);              
+               docsDir.addEventListener(FileListEvent.SELECT_MULTIPLE, filesSelected);               
+            }            
          }
          catch (error:Error)
          {
-            trace("Failed:", error.message);
-         }
+            Log.log("Failed:", error.message);
+         } 
       }
       
-      function filesSelected(event:*):void 
+      private function filesSelected(event:*):void 
       {
-        startingTime = getTimer();
-        var thelength:int;
-        var files:Vector.<Object> = new Vector.<Object>();
-        var fs:FileStream = new FileStream();
-        var FileData:ByteArray = new ByteArray;
-        var c:ByteArray = new ByteArray();        
-        var x:int = 0;
-        var hi:int = 0;
-        var i:uint = 0;
-        var l:int = 0;
-        var n:int = 0;           
+        Log.log("Wex boolean: " + this.WexisanIdiot)          
+        startingTime = getTimer();       
+        FileData = c = new ByteArray();        
+        x = i = l = n = 0;           
         if(sukapon == true)
         {
-           docsDir = event.target as File;
-           SaveData.export(); 
+           docsDir = event.target as File;         
            files = Vector.<Object>(docsDir.getDirectoryListing());
-           thelength = files.length;
-           for (hi = 0; hi < thelength; hi++) 
-           {
-               if (files[hi].nativePath.indexOf(".sw") !== -1 && this.WexisanIdiot == true)
+           thelength = files.length;        
+           for (i = 0; i < thelength; i++) 
+           {       
+               if (files[i].nativePath.indexOf(".sw") !== -1 && (this.WexisanIdiot == true || files[i].modificationDate.getTime() <= oldtime)) 
                {
-                  trace("bye bye " + files[hi].nativePath);
-                  files.removeAt(hi);
-                  hi--                                 
-               }
-               else if (files[hi].nativePath.indexOf(".ss") !== -1 && this.WexisanIdiot == false)
-               {
-                  trace("bai bai " + files[hi].nativePath);
-                  files.removeAt(hi); 
-                  hi--                   
-               }
-               else
-               {
-                  trace("ya");                         
-               }
+                  Log.log("Removing swf " + files[i].nativePath);
+                  files.removeAt(i);                 
+                  i--                       
+               }               
+               if (files[i].nativePath.indexOf(".ss") !== -1 && this.WexisanIdiot == false)
+               {                  
+                  Log.log("Removing ssf " + files[i].nativePath);                       
+                  files.removeAt(i); 
+                  i--                                    
+               }       
+               if(i !== -1)
+               {       
+                 if (files[i].modificationDate.getTime() > oldtime)
+                 {
+                    oldtime = files[i].modificationDate.getTime(); 
+                    Log.log("oldtime " + oldtime);                                
+                 }            
+               }   
                n++
                if(n == thelength)
                {
-                  hi = thelength - 1
-               }                                  
-           }
+                  i = thelength - 1
+               }                                                          
+           }                              
            thelength = files.length;
            n = 0;
-           trace("thelength " + thelength);       
+           Log.log("thelength " + thelength);       
         }
         else 
         {
            thelength = event.files.length;
            files = Vector.<Object>(event.files);
-           docsDir = new File(files[0].nativePath.substr(0, files[i].nativePath.lastIndexOf("\\") + 1));
-           SaveData.export(); 
+           docsDir = new File(files[0].nativePath.substr(0, files[i].nativePath.lastIndexOf("\\") + 1));           
         }                
-        
+        SaveData.export(); 
         for (i = 0; i < thelength; i++) 
-        {
-           
-            if(i == thelength - 1)
-            {
-               topsecret = files[i].modificationDate.getTime();
-               trace("this is top secret " + topsecret);
-               SaveData.export(); 
-            }
-            trace(files[i].nativePath);                        
+        {           
+            //Log.log(files[i].modificationDate.getTime());                        
             fs.open(files[i], FileMode.READ);
             fs.readBytes(FileData);
-            fs.close();    
+            fs.close();
+            c = new ByteArray();    
             try
-            { 
+            {                
                if(this.WexisanIdiot == true)                      
-               {                  
-                  c = new ByteArray();
+               {          
                   files[i].nativePath = files[i].nativePath.replace(".ssf",".swf");  
-                  FileData.uncompress(CompressionAlgorithm.ZLIB);                  
-                  trace("uncompressin'");
+                  FileData.uncompress(CompressionAlgorithm.ZLIB);              
                   l = FileData.readInt();
                   n = FileData.readInt();                             
                   for(x = 0; x < n; x++)
@@ -257,76 +515,86 @@
                      FileData.readInt();                                   
                   }
                   c.writeBytes(FileData,FileData.position,l);               
-                  FileData = c;
-                  l = null;
-                  n = null;
-                  x = null;                             
+                  FileData = c;                                               
                }
                if(this.WexisanIdiot == false)
-               {                                             
-                  c = new ByteArray();                 
-                  files[i].nativePath = files[i].nativePath.replace(".swf",".ssf");                          
-                  trace("compressin'");                                      
+               {                              
+                  files[i].nativePath = files[i].nativePath.replace(".swf",".ssf");                                            
                   c.writeInt(FileData.length);            
-                  for (hi = 0; hi < 1; hi++) 
+                  for (x = 0; x < 1; x++) 
                   {
-                      c.writeInt(0);
+                     c.writeInt(0);
                   } 
                   c.writeBytes(FileData);               
                   FileData = c;                     
-                  FileData.compress(CompressionAlgorithm.ZLIB);
-                  hi = null;                                 
-               }
-               trace(files[i].nativePath);               
+                  FileData.compress(CompressionAlgorithm.ZLIB);                                              
+               }               
+               Log.log(files[i].nativePath);               
                fs.open(files[i], FileMode.WRITE);           	            
                fs.writeBytes(FileData);
                fs.close();                              	               
-               trace(System.totalMemory / 1024);
-               FileData.length = 0;
-               c.length = 0;
+               //Log.log(System.totalMemory / 1024);
+               FileData.length = c.length = 0;              
                FileData.clear();
                c.clear();
+               l = x = n = null;                         
                System.pauseForGCIfCollectionImminent(1);                           
                System.gc();
-               System.gc();               
+               System.gc();         
+               stage.nativeWindow.title = PressorTitle + (i + 1) + "/" + thelength + " | " + (Math.round((i + 1) / thelength * 100)) + "% complete";                    
             }
             catch(err:Error)
             {
-               trace(err.message)
+               Log.log("File was unable to be Pressor'd " + err.message)               
             }   
          }
-         trace("Done");
-         endingTime = getTimer();
-         stage.nativeWindow.title = "Pressor 2.0 - Task COM-";
-         stage.nativeWindow.title = "Pressor 2.0 - Task    -PL-  ";
-         stage.nativeWindow.title = "Pressor 2.0 - Task COMPLETE!";
+         if(Capabilities.os.indexOf("Windows") >= 0)
+         {
+            if(WexisanIdiot == false)
+            {
+               SSF2Dir.nativePath = docsDir.nativePath.substr(0, docsDir.nativePath.lastIndexOf("\\") + 1) + "SSF2.exe";                    
+               Log.log(SSF2Dir.nativePath)
+               nativeProcessStartupInfo.executable = SSF2Dir; 
+               process = new NativeProcess();              
+               process.start(nativeProcessStartupInfo);
+               stage.nativeWindow.minimize();           
+            }
+            if(WexisanIdiot == true && thelength < 6)
+            {
+               for (i = 0; i < thelength; i++) 
+               {              
+                  files[i].nativePath = files[i].nativePath.replace(".ssf",".swf");                  
+                  nativeProcessStartupInfo.executable = swffile;                  
+                  processArgs[0] = files[i].nativePath;   
+                  nativeProcessStartupInfo.arguments = processArgs; 
+                  process = new NativeProcess();                             
+                  process.start(nativeProcessStartupInfo);
+                  Log.log("Opening " + files[i].nativePath);
+                  stage.nativeWindow.minimize();       
+               }
+            }
+         }     
+         Log.log("Done");	 
+         endingTime = getTimer();        
          stage.nativeWindow.notifyUser(NotificationType.INFORMATIONAL);               
          if(NativeApplication.supportsDockIcon)
-         {
-            var dockIcon:DockIcon = NativeApplication.nativeApplication.icon as DockIcon;
+         {            
             dockIcon.bounce(NotificationType.INFORMATIONAL);
-         }         
-         setTimeout(function():void{stage.nativeWindow.title = "Pressor 2.0: Finished in " +  (endingTime - startingTime) / 1000 + " seconds!"},3000);
-      }
+         }     
+         pressortext.text = stage.nativeWindow.title + " | Finished in " +  (endingTime - startingTime) / 1000 + " seconds!";
+      }  
 
-      /*private function secrets(param1:Event) : void
-      {         
-         if(docsDir !== File.documentsDirectory || docsDir !== null || docsDir !== "")
-         {
-            docsDir.getDirectoryListing();
-            docsDir.addEventListener(FileListEvent.DIRECTORY_LISTING, directoryListingHandler);
-         }
-      }
-
-      function directoryListingHandler(event:FileListEvent):void
+      function on_loadComplete(e:Event):void
       {
-         var list:Array = event.files;
-         for (var i:uint = 0; i < list.length; i++) {
-         if(f.modificationDate.getTime() > Main.topsecret)
-         {
-           trace("yeah boi")
-         }
-      }*/
-     
+         var image:DisplayObject = loader.content;       
+         image.width = 720;
+         image.height = 480;
+         bgimage.addChild(loader);          
+      }    
+
+      function randomRange(minNum:Number, maxNum:Number):Number 
+      {         
+         return (Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum);         
+      }     
    }
 }
