@@ -105,8 +105,6 @@ package
 		{
 			stage = target.stage;
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey);
-			trace("huh " + Version.getVersion());
-			
 			visible = visible;
 		}
 		

@@ -30,36 +30,39 @@
             {               
               Log.log("SaveData not 2.1 compatible, refreshing")
             }
-            Main.oldtime = theGoods.oldtime;  
-            Log.log("The last compression time is " + Main.oldtime + " imagebool is " + theGoods.imagebool)
-            Log.log("ponpon: " + theGoods.easteregg + "sukaponchecked: " + theGoods.sukaponchecked);
-            Main.ponpon = theGoods.easteregg; 
-            Main.sukaponchecked = theGoods.sukaponchecked;          
-            Main.color1 = theGoods.color1;
-            Main.color2 = theGoods.color2;
-            Main.color3 = theGoods.color3;
-            Main.color4 = theGoods.color4;
-            Main.muteCheck = theGoods.mute;
-            Main.slider = theGoods.sfxVolume;
-            Main.mslider = theGoods.musicVolume;            
-            Main.docsDir = new File(theGoods.lastDirectory);
+            if(theGoods.theme !== null && theGoods.theme !== undefined)
+            {
+               Mania.specialname = theGoods.theme;
+            }   
+            Mania.oldtime = theGoods.oldtime;           
+            Mania.ponpon = theGoods.easteregg; 
+            Mania.sukaponchecked = theGoods.sukaponchecked;          
+            Mania.color1 = theGoods.color1;
+            Mania.color2 = theGoods.color2;
+            Mania.color3 = theGoods.color3;
+            Mania.color4 = theGoods.color4;
+            Mania.muteCheck = theGoods.mute;
+            Mania.slider = theGoods.sfxVolume;
+            Mania.mslider = theGoods.musicVolume;            
+            Mania.docsDir = new File(theGoods.lastDirectory);
             if(theGoods.imagebool == "undefined" || theGoods.imagebool == null)
             {
                Log.log("imagebool not found")
-               Main.imagebool = true;
+               Mania.imagebool = true;
                SaveData.export();               
             }  
    			else
    			{            
-              Main.imagebool = theGoods.imagebool;
+              Mania.imagebool = theGoods.imagebool;
             }             
             theGoods = null;
             Log.log("SaveData successfully imported");      
          }
          catch(e:*)
          {              
-            Main.docsDir = File.documentsDirectory;
-            Main.muteCheck = false;
+            Mania.specialname = "ff7 remake";
+            Mania.docsDir = File.documentsDirectory;
+            Mania.muteCheck = false;
             Log.log("Import failed: " + e.message);
             stream.open(lifesaver,FileMode.WRITE);        
             stream.writeUTFBytes(newSave);           
@@ -77,28 +80,24 @@
             stream.open(lifesaver,FileMode.READ);
             stream.readBytes(baby);
             stream.close();
-            theGoods = JSON.parse(baby);
-            Log.log("theGoods: " + theGoods.oldtime) 
-            theGoods.easteregg = Main.ponpon; 
-            Log.log("ponpon: " + theGoods.easteregg); 
-            theGoods.sukaponchecked = Main.sukaponchecked;              
-            theGoods.lastDirectory = Main.docsDir.nativePath;
-            theGoods.mute = Main.muteCheck;
-            theGoods.sfxVolume = Main.slider;
-            theGoods.musicVolume = Main.mslider;
-            theGoods.color1 = Main.color1;
-            theGoods.color2 = Main.color2;
-            theGoods.color3 = Main.color3;
-            theGoods.color4 = Main.color4;
-            theGoods.imagebool = Main.imagebool;
-            if(Main.oldtime > theGoods.oldtime)
+            theGoods = JSON.parse(baby);  
+            theGoods.theme = Mania.specialname;         
+            theGoods.easteregg = Mania.ponpon;         
+            theGoods.sukaponchecked = Mania.sukaponchecked;              
+            theGoods.lastDirectory = Mania.docsDir.nativePath;
+            theGoods.mute = Mania.muteCheck;
+            theGoods.sfxVolume = Mania.slider;
+            theGoods.musicVolume = Mania.mslider;
+            theGoods.color1 = Mania.color1;
+            theGoods.color2 = Mania.color2;
+            theGoods.color3 = Mania.color3;
+            theGoods.color4 = Mania.color4;
+            theGoods.imagebool = Mania.imagebool;
+            if(Mania.oldtime > theGoods.oldtime)
             {
-               theGoods.oldtime = Main.oldtime;
-               Log.log("oldtime updated to: " + Main.oldtime)  
-            }            
-            Log.log("theGoods after: " + theGoods.oldtime)        
-            ohoby = JSON.stringify(theGoods,null,4); 
-            Log.log(ohoby);      
+               theGoods.oldtime = Mania.oldtime;               
+            }               
+            ohoby = JSON.stringify(theGoods,null,4);              
             stream.open(lifesaver,FileMode.WRITE);
             stream.writeUTFBytes(ohoby);
             stream.close();
@@ -106,7 +105,7 @@
         }   
         catch(e:*)
          {              
-            Main.oldtime = 1;
+            Mania.oldtime = 1;
             Log.log("Export failed: " + e.message);
             stream.open(lifesaver,FileMode.WRITE);
             stream.writeUTFBytes(newSave);
@@ -118,9 +117,9 @@
       {
          return {
             	"lastDirectory":File.documentsDirectory.nativePath,
-	            "title":"Pressor 2.0 by Wex",
-               "musicVolume":"0.6",
-               "sfxVolume":"0.4",              
+               "theme":"ff7 remake",	            
+               "musicVolume":"0.3",
+               "sfxVolume":"0.2",              
             	"color1":"102",
             	"color2":"10027008",
             	"color3":"12104812",
@@ -128,9 +127,7 @@
                "mute":false,
                "imagebool":true, 
                "easteregg":false,
-               "sukaponchecked":false,              
-               "oldtime":"1"                          
-         };
-      }   
-   }
-}
+               "sukaponchecked":false
+         }
+      }
+   }   }      
