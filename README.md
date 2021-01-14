@@ -1,7 +1,7 @@
 # Pressor
 The best ssf2 modloader 
 
-https://github.com/masterwebx/Pressor/releases/
+https://github.com/masterwebx/Pressor/releases/latest
 
 
 What does it do? It compresses the .ssf/.swf files for the popular flash game Super Smash Flash 2!
