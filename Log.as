@@ -66,7 +66,7 @@ package
 				textArea.y = 10;
 				
 				textArea.border = true;
-				textArea.wordWrap = false;
+				textArea.wordWrap = true;
 				textArea.multiline = true;
 				textArea.selectable = true;
 				textArea.background = true;
